@@ -13,8 +13,8 @@ var port  = phantom.args[1] || 3001;
 var defaultViewportSize = phantom.args[2] || '';
 defaultViewportSize = defaultViewportSize.split('x');
 defaultViewportSize = {
-  width: ~~defaultViewportSize[0] || 768,
-  height: ~~defaultViewportSize[1] || 1024
+  width: ~~defaultViewportSize[0] || 1024,
+  height: ~~defaultViewportSize[1] || 768
 };
 
 var pageSettings = ['javascriptEnabled', 'loadImages', 'localToRemoteUrlAccessEnabled', 'userAgent', 'userName', 'password'];
