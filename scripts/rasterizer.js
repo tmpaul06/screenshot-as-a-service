@@ -13,8 +13,8 @@ var port  = phantom.args[1] || 3001;
 var defaultViewportSize = phantom.args[2] || '';
 defaultViewportSize = defaultViewportSize.split('x');
 defaultViewportSize = {
-  width: ~~defaultViewportSize[0] || 1024,
-  height: ~~defaultViewportSize[1] || 600
+  width: ~~defaultViewportSize[0] || 768,
+  height: ~~defaultViewportSize[1] || 1024
 };
 
 var pageSettings = ['javascriptEnabled', 'loadImages', 'localToRemoteUrlAccessEnabled', 'userAgent', 'userName', 'password'];
@@ -92,6 +92,28 @@ service = server.listen(port, function(request, response) {
   page.open(url, function(status) {
     if (status == 'success') {
       window.setTimeout(function () {
+        var selector = request.headers.selector;
+        if (selector) {
+          var rect = page.evaluate(function(selector) {
+            if (selector === undefined) {
+              return null;
+            }
+            var elem = document.querySelector(selector);
+            if (elem) {
+              var clipRect = elem.getBoundingClientRect();
+              return {
+                top: clipRect.top,
+                left: clipRect.left,
+                width: clipRect.width,
+                height: clipRect.height
+              };
+            }
+            return null;
+          }, selector);
+          if (rect !== null) {
+            page.clipRect = rect;
+          }
+        }
         page.render(path);
         response.write('Success: Screenshot saved to ' + path + "\n");
         page.release();
