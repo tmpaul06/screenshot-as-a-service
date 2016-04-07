@@ -6,11 +6,11 @@
  *
  * This starts an HTTP server waiting for screenshot requests
  */
-var basePath = phantom.args[0] || '/tmp/';
+var basePath = '/tmp/';
 
-var port  = phantom.args[1] || 3001;
+var port  = 3001;
 
-var defaultViewportSize = phantom.args[2] || '';
+var defaultViewportSize = '';
 defaultViewportSize = defaultViewportSize.split('x');
 defaultViewportSize = {
   width: ~~defaultViewportSize[0] || 1024,
@@ -66,6 +66,13 @@ service = server.listen(port, function(request, response) {
   var url = request.headers.url;
   var path = basePath + (request.headers.filename || (url.replace(new RegExp('https?://'), '').replace(/\//g, '.') + '.png'));
   var page = new WebPage();
+  var cookie = {
+    'name': 'roamtoken',
+    'value': request.headers.roamtoken,
+    'domain': request.headers.domain,
+    'path': '/'
+  };
+  phantom.addCookie(cookie);
   page.onResourceError = function(resourceError) {
     page.error_reason = resourceError.errorString;
   };

@@ -14,13 +14,16 @@ module.exports = function(app, useCors) {
       return res.redirect('/usage.html');
     }
 
-    var url = utils.url(req.param('url'));
+    var url = req.param('url');
     // required options
     var options = {
       uri: 'http://localhost:' + rasterizerService.getPort() + '/',
       headers: { url: url }
     };
-    ['width', 'height', 'clipRect', 'javascriptEnabled', 'loadImages', 'localToRemoteUrlAccessEnabled', 'userAgent', 'userName', 'password', 'delay', 'selector'].forEach(function(name) {
+    ['width', 'height', 'clipRect',
+    'javascriptEnabled', 'loadImages', 'localToRemoteUrlAccessEnabled',
+    'userAgent', 'userName', 'password', 'delay', 'selector', 'roamtoken', 'domain'].forEach(function(name) {
+      console.log(name, req.param(name, false))
       if (req.param(name, false)) options.headers[name] = req.param(name);
     });
 
