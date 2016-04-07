@@ -6,7 +6,8 @@
  *
  * This starts an HTTP server waiting for screenshot requests
  */
-var basePath = '/tmp/';
+var fs = require('fs');
+var basePath = fs.workingDirectory + '/images/';
 
 var port  = 3001;
 

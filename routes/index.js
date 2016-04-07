@@ -3,13 +3,20 @@ var join = require('path').join;
 var fs = require('fs');
 var path = require('path');
 var request = require('request');
+var express = require('express');
+
+function roundTo(numA, numB) {
+  return Math.round(numA/numB) * numB;
+}
 
 module.exports = function(app, useCors) {
   var rasterizerService = app.settings.rasterizerService;
   var fileCleanerService = app.settings.fileCleanerService;
-
   // routes
-  app.get('/', function(req, res, next) {
+  var imagePath = path.join(path.dirname(module.parent.filename),'images');
+  app.use('/images', express.static(imagePath));
+
+  app.get('/screenshot', function(req, res, next) {
     if (!req.param('url', false)) {
       return res.redirect('/usage.html');
     }
@@ -23,11 +30,12 @@ module.exports = function(app, useCors) {
     ['width', 'height', 'clipRect',
     'javascriptEnabled', 'loadImages', 'localToRemoteUrlAccessEnabled',
     'userAgent', 'userName', 'password', 'delay', 'selector', 'roamtoken', 'domain'].forEach(function(name) {
-      console.log(name, req.param(name, false))
       if (req.param(name, false)) options.headers[name] = req.param(name);
     });
 
-    var filename = 'screenshot_' + utils.md5(url + JSON.stringify(options)) + '.png';
+    // var now = Date.now();
+    // var nearestFiveMinutes = roundTo(now, 5 * 60 * 1000);
+    var filename = 'screenshot_' + utils.md5(url + JSON.stringify(options) + Date.now()) + '.png';
     options.headers.filename = filename;
 
     var filePath = join(rasterizerService.getPath(), filename);
@@ -43,10 +51,10 @@ module.exports = function(app, useCors) {
     processImageUsingRasterizer(options, filePath, res, callbackUrl, function(err) { if(err) next(err); });
   });
 
-  app.get('*', function(req, res, next) {
-    // for backwards compatibility, try redirecting to the main route if the request looks like /www.google.com
-    res.redirect('/?url=' + req.url.substring(1));
-  });
+  // app.get('*', function(req, res, next) {
+  //   // for backwards compatibility, try redirecting to the main route if the request looks like /www.google.com
+  //   res.redirect('/?url=' + req.url.substring(1));
+  // });
 
   // bits of logic
   var processImageUsingCache = function(filePath, res, url, callback) {
@@ -70,6 +78,9 @@ module.exports = function(app, useCors) {
       });
     } else {
       // synchronous
+      res.json({
+        path: filePath
+      });
       callRasterizer(rasterizerOptions, function(error) {
         if (error) return callback(error);
         sendImageInResponse(filePath, res, callback);
@@ -111,14 +122,15 @@ module.exports = function(app, useCors) {
 
   var sendImageInResponse = function(imagePath, res, callback) {
     console.log('Sending image in response');
-    if (useCors) {
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Access-Control-Expose-Headers", "Content-Type");
-    }
-    res.sendfile(imagePath, function(err) {
-      fileCleanerService.addFile(imagePath);
-      callback(err);
-    });
+    fileCleanerService.addFile(imagePath);
+    // if (useCors) {
+    //   res.setHeader("Access-Control-Allow-Origin", "*");
+    //   res.setHeader("Access-Control-Expose-Headers", "Content-Type");
+    // }
+    // res.sendfile(imagePath, function(err) {
+    //   fileCleanerService.addFile(imagePath);
+    //   callback(err);
+    // });
   }
 
 };
