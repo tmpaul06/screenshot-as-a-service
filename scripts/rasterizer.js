@@ -99,9 +99,10 @@ service = server.listen(port, function(request, response) {
   }
   page.open(url, function(status) {
     if (status == 'success') {
-      window.setTimeout(function () {
+      setTimeout(function() {
+      setTimeout(function () {
         var selector = request.headers.selector;
-        if (selector) {
+        /*if (selector) {
           var rect = page.evaluate(function(selector) {
             if (selector === undefined) {
               return null;
@@ -121,12 +122,13 @@ service = server.listen(port, function(request, response) {
           if (rect !== null) {
             page.clipRect = rect;
           }
-        }
+        }*/
         page.render(path);
         response.write('Success: Screenshot saved to ' + path + "\n");
         page.release();
         response.close();
       }, delay);
+     }, 1);
     } else {
       response.write('Error: Url returned status ' + status + ' - ' + page.error_reason + "\n");
       page.release();

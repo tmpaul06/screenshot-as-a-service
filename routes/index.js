@@ -1,4 +1,5 @@
 var utils = require('../lib/utils');
+var phantom_screenshot = require('../phantomjs_screenshot');
 var join = require('path').join;
 var fs = require('fs');
 var path = require('path');
@@ -24,19 +25,18 @@ module.exports = function(app, useCors) {
     var url = req.param('url');
     // required options
     var options = {
-      uri: 'http://localhost:' + rasterizerService.getPort() + '/',
-      headers: { url: url }
+      
     };
     ['width', 'height', 'clipRect',
     'javascriptEnabled', 'loadImages', 'localToRemoteUrlAccessEnabled',
     'userAgent', 'userName', 'password', 'delay', 'selector', 'roamtoken', 'domain'].forEach(function(name) {
-      if (req.param(name, false)) options.headers[name] = req.param(name);
+      if (req.param(name, false)) options[name] = req.param(name);
     });
 
     // var now = Date.now();
     // var nearestFiveMinutes = roundTo(now, 5 * 60 * 1000);
     var filename = 'screenshot_' + utils.md5(url + JSON.stringify(options) + Date.now()) + '.png';
-    options.headers.filename = filename;
+    options.output = './images/' + filename;
 
     var filePath = join(rasterizerService.getPath(), filename);
 
@@ -48,7 +48,19 @@ module.exports = function(app, useCors) {
       return;
     }
     console.log('Request for %s - Rasterizing it', url);
-    processImageUsingRasterizer(options, filePath, res, callbackUrl, function(err) { if(err) next(err); });
+    phantom_screenshot.authorize('', function(ph) {
+      console.log('Inside callback');
+      ph.createPage(function(page) {
+        phantom_screenshot.capture(ph, page, options, function(){
+           console.log("Finished capturing");
+        });
+      });
+    });
+    return res.json({
+      'path': filename
+    });
+    
+//    processImageUsingRasterizer(options, filePath, res, callbackUrl, function(err) { if(err) next(err); });
   });
 
   // app.get('*', function(req, res, next) {

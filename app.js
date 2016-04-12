@@ -8,6 +8,7 @@ var FileCleanerService = require('./lib/fileCleanerService');
 
 process.on('uncaughtException', function (err) {
   console.error("[uncaughtException]", err);
+  console.log(err.stack);
   process.exit(1);
 });
 
@@ -22,7 +23,8 @@ process.on('SIGINT', function () {
 // web service
 var app = express();
 app.configure(function(){
-  app.use(express.static(__dirname + '/public'))
+  // console.log("Static folder", __dirname + "/images");
+  //app.use(express.static(__dirname + '/images'));
   app.use(app.router);
   app.set('rasterizerService', new RasterizerService(config.rasterizer).startService());
   app.set('fileCleanerService', new FileCleanerService(config.cache.lifetime));
