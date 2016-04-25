@@ -10,3 +10,9 @@ server:
   port: 3000           # main service port
   host: '127.0.0.1'    # host to listen on
   useCors: false       # enable CORS support
+rasterizerv2:
+  command: casperjs   # phantomjs executable
+  port: 3003           # internal service port. No need to allow inbound or outbound access to this port
+  host: '127.0.0.1'    # host to listen on
+  path: 'images'        # where the screenshot files are stored
+  viewport: '1024x600' # browser window size. Height frows according to the content

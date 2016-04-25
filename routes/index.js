@@ -12,6 +12,7 @@ function roundTo(numA, numB) {
 module.exports = function(app, useCors) {
   var rasterizerService = app.settings.rasterizerService;
   var fileCleanerService = app.settings.fileCleanerService;
+  console.log("app.settings", app.settings.rasterizerServicev2);
   // routes
   var imagePath = path.join(path.dirname(module.parent.filename),'images');
   app.use('/images', express.static(imagePath));
