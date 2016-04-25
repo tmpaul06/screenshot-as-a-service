@@ -4,6 +4,8 @@ var fs = require('fs');
 var path = require('path');
 var request = require('request');
 var express = require('express');
+var spawn = require('child_process').spawn;
+var config = require('config');
 
 function roundTo(numA, numB) {
   return Math.round(numA/numB) * numB;
@@ -12,10 +14,52 @@ function roundTo(numA, numB) {
 module.exports = function(app, useCors) {
   var rasterizerService = app.settings.rasterizerService;
   var fileCleanerService = app.settings.fileCleanerService;
-  console.log("app.settings", app.settings.rasterizerServicev2);
+  var rasterizerServicev2 = app.settings.rasterizerServicev2;
+  var configv2 = config.rasterizerv2;
   // routes
   var imagePath = path.join(path.dirname(module.parent.filename),'images');
   app.use('/images', express.static(imagePath));
+
+  app.get('/screenshot/v2', function(req, res, next) {
+    if (!req.param('url', false)) {
+      return res.redirect('/usage.html');
+    }
+
+    var url = req.param('url');
+    var selector = req.param('selector');
+    var authorizationHeader = req.param('authorization');
+    var delay = req.param('delay');
+
+    var options = {};
+    ['url', 'selector', 'delay'].forEach(function(name) {
+      if (req.param(name, false)) options[name] = req.param(name);
+    });
+
+    var configPath = 'images/' + ('screenshot_' + utils.md5(url + JSON.stringify(options) + Date.now()) + '.png')
+
+    var rasterizerv2 = spawn(configv2.command, [
+      'scripts/rasterizerv2.js',
+      url,
+      configPath,
+      selector,
+      delay,
+      authorizationHeader
+    ]);
+
+    rasterizerv2.stderr.on('data', function (data) {
+      console.log('casperjs error: ' + data);
+    });
+
+    rasterizerv2.stdout.on('data', function (data) {
+      console.log('casperjs output: ' + data);
+    });
+
+    rasterizerv2.on('exit', function () {
+      console.log("screenshot captured");
+    });
+
+    res.send(configPath);
+  });
 
   app.get('/screenshot', function(req, res, next) {
     if (!req.param('url', false)) {
