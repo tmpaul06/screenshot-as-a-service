@@ -6,11 +6,15 @@
  *
  * This starts an HTTP server waiting for screenshot requests
  */
-var basePath = phantom.args[0] || '/tmp/';
 
-var port  = phantom.args[1] || 3001;
+var system = require('system');
+var args = phantom.args || system.args.slice(1);
 
-var defaultViewportSize = phantom.args[2] || '';
+var basePath = args[0] || '/tmp/';
+
+var port  = args[1] || 3001;
+
+var defaultViewportSize = args[2] || '';
 defaultViewportSize = defaultViewportSize.split('x');
 defaultViewportSize = {
   width: ~~defaultViewportSize[0] || 1024,
